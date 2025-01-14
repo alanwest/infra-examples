@@ -1,0 +1,48 @@
+cat > /root/otel-config.yml <<- "SCRIPT"
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+  resourcedetection:
+    detectors: ["gcp"]
+  transform:
+    trace_statements:
+      - context: resource
+        statements:
+          - replace_pattern(attributes["host.id"], "(.*)", "gcp-$$1")
+    metric_statements:
+      - context: resource
+        statements:
+          - replace_pattern(attributes["host.id"], "(.*)", "gcp-$$1")
+    log_statements:
+      - context: resource
+        statements:
+          - replace_pattern(attributes["host.id"], "(.*)", "gcp-$$1")
+
+exporters:
+  otlphttp:
+    endpoint: $${NEW_RELIC_OTLP_ENDPOINT}
+    headers:
+      api-key: $${NEW_RELIC_API_KEY}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resourcedetection, transform, batch]
+      exporters: [otlphttp]
+    metrics:
+      receivers: [otlp]
+      processors: [resourcedetection, transform, batch]
+      exporters: [otlphttp]
+    logs:
+      receivers: [otlp]
+      processors: [resourcedetection, transform, batch]
+      exporters: [otlphttp]
+
+SCRIPT

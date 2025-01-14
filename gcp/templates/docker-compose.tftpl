@@ -1,0 +1,19 @@
+cat > /root/docker-compose.yml <<- "SCRIPT"
+
+services:
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.117.0
+    volumes:
+      - /root/otel-config.yml:/otel-config.yml
+    command: ["--config=/otel-config.yml"]
+    environment:
+      - NEW_RELIC_API_KEY
+      - NEW_RELIC_OTLP_ENDPOINT
+  adservice:
+    image: otel/demo:1.10.0-adservice
+    environment:
+      - AD_SERVICE_PORT=8080
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otelcol:4318
+      - OTEL_SERVICE_NAME=adservice
+
+SCRIPT

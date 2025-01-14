@@ -1,0 +1,22 @@
+## Install Docker https://docs.docker.com/engine/install/ubuntu/
+
+chmod 700 /root/docker-install.sh
+/root/docker-install.sh >> /root/docker-install.log
+mv /root/docker-install.sh /root/docker-install.sh.EXECUTED #prevent it from running again
+
+## Set environment variables
+
+export NEW_RELIC_API_KEY=
+export NEW_RELIC_OTLP_ENDPOINT=https://otlp.nr-data.net
+
+## Install New Relic Infrastructure Agent https://docs.newrelic.com/docs/infrastructure/infrastructure-agent/linux-installation/package-manager-install/
+
+echo "license_key: $${NEW_RELIC_API_KEY}" | sudo tee -a /etc/newrelic-infra.yml
+curl -fsSL https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/newrelic-infra.gpg
+echo "deb https://download.newrelic.com/infrastructure_agent/linux/apt focal main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list
+sudo apt-get update
+sudo apt-get install newrelic-infra -y
+
+## Start services
+
+docker compose -f /root/docker-compose.yml up -d
